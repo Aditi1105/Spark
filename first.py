@@ -1071,6 +1071,55 @@ filterdf.show()
 
 
 
+## WINDOWING ( RANK, DENSE_RANK, ROW_NUMBER)
+
+from pyspark.sql.functions import  *
+
+
+data = [("DEPT3", 500),
+        ("DEPT3", 200),
+        ("DEPT1", 1000),
+        ("DEPT1", 700),
+        ("DEPT1", 700),
+        ("DEPT1", 500),
+        ("DEPT2", 400),
+        ("DEPT2", 200)]
+columns = ["dept", "salary"]
+df = spark.createDataFrame(data, columns)
+df.show()
+
+
+from pyspark.sql.window import Window
+# STEP 1  CREATE WINDOW ON DEPT WITH DESC ORDER OF SALARY
+
+deptwindow = Window.partitionBy("dept").orderBy(col("salary").desc())
+
+#STEP 2  Applying window on DF with Dense Rank
+denserankdf = df.withColumn("drank",dense_rank().over(deptwindow))
+denserankdf.show()
+
+#STEP 3  Filter rank '2' and drop drank
+finaldf = denserankdf.filter("drank = 2").drop("drank")
+print("DENSE RANK")
+finaldf.show()
+
+
+
+
+
+rankdf = df.withColumn("drank",rank().over(deptwindow))
+rankdf.show()
+finaldf1 = rankdf.filter("drank = 2").drop("drank")
+print("RANK")
+finaldf1.show()
+
+
+
+rownumdf = df.withColumn("drank",row_number().over(deptwindow))
+rownumdf.show()
+finaldf2 = rownumdf.filter("drank = 2").drop("drank")
+print("ROW NUMBER")
+finaldf2.show()
 
 
 
